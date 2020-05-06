@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>HDF5 · LEGEND Data Format Specifications</title><link rel="canonical" href="https://legend-exp.github.io/legend-data-format-specs/stable/hdf5/index.html"/><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>LEGEND Data Format Specifications</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li class="current"><a class="toctext" href>HDF5</a><ul class="internal"><li><a class="toctext" href="#HDF5-datasets,-groups-and-attributes-1">HDF5 datasets, groups and attributes</a></li><li><a class="toctext" href="#Abstract-data-model-representation-1">Abstract data model representation</a></li><li><a class="toctext" href="#Examples-1">Examples</a></li></ul></li><li><a class="toctext" href="../data_compression/">Data Compression</a></li><li><a class="toctext" href="../daq_data/">DAQ Data</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href>HDF5</a></li></ul><a class="edit-page" href="https://github.com/legend-exp/legend-data-format-specs/blob/master/docs/src/hdf5.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>HDF5</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="HDF5-File-Format-[Incomplete]-1" href="#HDF5-File-Format-[Incomplete]-1">HDF5 File Format [Incomplete]</a></h1><p>HDF5 is used as the primary binary data format in LEGEND.</p><p>The following describes a mapping between the abstract data model and HDF5. This specifies the structure of the HDF5 implicitly, but precisely, for any data that conforms to the data model. The mapping purposefully uses only common and basic HDF5 features, to ensure it can be easily and reliably implemented in multiple programming languages.</p><h2><a class="nav-anchor" id="HDF5-datasets,-groups-and-attributes-1" href="#HDF5-datasets,-groups-and-attributes-1">HDF5 datasets, groups and attributes</a></h2><p>Different data types may be stored as an HDF5 dataset of the same type (e.g. a 2-dimensional dataset may represent a matrix or a vector of same-sized vectors). To make the HDF5 files self-documenting, the HDF5 attribute &quot;datatype&quot; is used to indicate the type semantics of datasets and groups.</p><h2><a class="nav-anchor" id="Abstract-data-model-representation-1" href="#Abstract-data-model-representation-1">Abstract data model representation</a></h2><p>The abstract data model is mapped as follows:</p><h3><a class="nav-anchor" id="Scalar-values-1" href="#Scalar-values-1">Scalar values</a></h3><p>Single scalar values are stored as 0-dimensional datasets</p><p>Attribute &quot;datatype&quot;: &quot;real&quot;, &quot;string&quot;, &quot;symbol&quot;, ...</p><h3><a class="nav-anchor" id="Arrays-1" href="#Arrays-1">Arrays</a></h3><h4><a class="nav-anchor" id="Flat-arrays-1" href="#Flat-arrays-1">Flat arrays</a></h4><p>Flat n-dimension arrays are stored as n-dimensional datasets</p><p>Attribute &quot;datatype&quot;: &quot;array&lt;n&gt;{ELEMENT_TYPE}&quot;</p><h4><a class="nav-anchor" id="Fixed-sized-arrays-1" href="#Fixed-sized-arrays-1">Fixed-sized arrays</a></h4><p>...</p><p>Attribute &quot;datatype&quot;: &quot;fixedsize<em>array&lt;n&gt;{ELEMENT</em>TYPE}&quot;</p><h4><a class="nav-anchor" id="Arrays-of-arrays-of-same-size-1" href="#Arrays-of-arrays-of-same-size-1">Arrays of arrays of same size</a></h4><p>Nested arrays of dimensionality n, m are stored as flat n+m dimensional datasets.</p><p>Attribute &quot;datatype&quot;: &quot;array<em>of</em>equalsized<em>arrays&lt;n,m&gt;{ELEMENT</em>TYPE}&quot;</p><h4><a class="nav-anchor" id="Vectors-of-vectors-of-different-size-1" href="#Vectors-of-vectors-of-different-size-1">Vectors of vectors of different size</a></h4><p>A Vector of vectors is stored as a group that contains two datasets:</p><ul><li>A 1-dimensional dataset &quot;flattened_data&quot; that stores the concatenation of all vectors into a single vector.</li><li>A 1-dimensional dataset &quot;cumulative_length&quot; that stores the cumulative sum of the length of all vectors.</li></ul><p>HDF5 Attributes of the group:</p><ul><li>&quot;datatype&quot;: &quot;array&lt;1&gt;{array&lt;1&gt;{ELEMENT_TYPE}}&quot;</li></ul><p>The two datasets in the group also have &quot;datatype&quot; (and possibly &quot;units&quot;) attributes that match their content.</p><h3><a class="nav-anchor" id="Structs-1" href="#Structs-1">Structs</a></h3><p>Structs are stored as HDF5 groups. Fields that are structs themselves are stored as sub-groups, scalars and arrays as datasets. Groups and datasets in the group are named after the fields of the struct.</p><p>HDF5 Attributes:</p><ul><li>&quot;datatype&quot;: &quot;struct{FIELDNAME<em>1,FIELDNAME</em>2,...}&quot;</li></ul><h3><a class="nav-anchor" id="Tables-1" href="#Tables-1">Tables</a></h3><p>A Table are stored are group of datasets, each representing a column of the table.</p><p>HDF5 Attributes:</p><ul><li>&quot;datatype&quot;: &quot;table{COLNAME<em>1,COLNAME</em>2,...}&quot;</li></ul><h3><a class="nav-anchor" id="Enums-1" href="#Enums-1">Enums</a></h3><p>Enum values are stores as integer values, but with the &quot;datatype&quot; attribute: &quot;enum{NAME=INT<em>VALUE,...}&quot;. So a vector of enum values will have a &quot;datatype&quot; attribute like &quot;array&lt;N&gt;{enum{NAME=INT</em>VALUE,...}}&quot;&quot;</p><h3><a class="nav-anchor" id="Values-with-physical-units-1" href="#Values-with-physical-units-1">Values with physical units</a></h3><p>For values with physical units, the dataset only contains the numerical values. The attribute &quot;units&quot; stores the unit information. The attribute value is the string representation of the common scientific notation for the unit. Unicode must not be used.</p><p>HDF5 Attributes:</p><ul><li>&quot;units&quot;: e.g. &quot;mm&quot;, &quot;ns&quot;, &quot;keV&quot;</li></ul><h2><a class="nav-anchor" id="Examples-1" href="#Examples-1">Examples</a></h2><p>A table &quot;daqdata&quot; with columns for channel number, unix-time, event type, veto and waveform will be written to an HDF5 file like this:</p><pre><code class="language-none">GROUP &quot;daqdata&quot; {
+    ATTRIBUTE &quot;datatype&quot; = &quot;table{ch,unixtime,evttype,veto,waveform}&quot;
+    DATASET &quot;ch&quot; {
+        ATTRIBUTE &quot;datatype&quot; = &quot;array&lt;1&gt;{real}&quot;
+        DATA = [1, 3, 2, 4, ...]
+    }
+    DATASET &quot;unixtime&quot; {
+        ATTRIBUTE &quot;datatype&quot; = &quot;array&lt;1&gt;{real}&quot;
+        DATA = [1.44061e+09, 1.44061e+09, ...]
+    }
+    DATASET &quot;evttype&quot; {
+        ATTRIBUTE &quot;datatype&quot; = &quot;array&lt;1&gt;{enum{evt_undef=0,evt_real=1,evt_pulser=2,evt_mc=3,evt_baseline=4}}&quot;
+        DATA = [1, 2, 1, 1, ...]
+    }
+    DATASET &quot;veto&quot; {
+        DATA = [1, 1, 0, 0, ...]
+        ATTRIBUTE &quot;datatype&quot; = &quot;array&lt;1&gt;{bool}&quot;
+        DATA = [1, 1, 0, 0, ...]
+    }
+    GROUP &quot;waveform&quot; {
+        ATTRIBUTE &quot;datatype&quot; = &quot;table{t0,dt,values}&quot;
+        DATASET &quot;dt&quot; {
+            ATTRIBUTE &quot;datatype&quot;= &quot;array&lt;1&gt;{real}&quot;
+            ATTRIBUTE &quot;units&quot;= &quot;ns&quot;
+            DATA = [10, 10, 10, ...]
+        }
+        DATASET &quot;t0&quot; {
+            ATTRIBUTE &quot;datatype&quot;= &quot;array&lt;1&gt;{real}&quot;
+            ATTRIBUTE &quot;units&quot;= &quot;ns&quot;
+            DATA = [76420, 76420, 76420, ...]
+        }
+        GROUP &quot;values&quot; {
+            ATTRIBUTE &quot;datatype&quot;= &quot;array&lt;1&gt;{array&lt;1&gt;{real}}&quot;
+            DATASET &quot;cumulative_length&quot; {
+                ATTRIBUTE &quot;datatype&quot; = &quot;array&lt;1&gt;{real}&quot;
+                DATA = [1000, 2000, 3000, 4000, ...]
+            }
+            DATASET &quot;flattened_data&quot; {
+                ATTRIBUTE &quot;datatype&quot; = &quot;array&lt;1&gt;{real}&quot;
+                DATA = [14440, 14442, 14441, 14434, ...]
+            }
+        }
+    }
+}</code></pre><p>The actual numeric types of the datasets will be application-dependent.</p><p>A 1-dimensional histogram will be written as</p><pre><code class="language-none">GROUP &quot;hist_1d&quot; {
+    ATTRIBUTE &quot;datatype&quot; = &quot;struct{binning,weights,isdensity}&quot;
+    GROUP &quot;binning&quot; {
+        ATTRIBUTE &quot;datatype&quot; = &quot;struct{axis_1}&quot;
+        GROUP &quot;axis_1&quot; {
+            ATTRIBUTE &quot;datatype&quot; = &quot;struct{binedges,closedleft}&quot;
+            GROUP &quot;binedges&quot; {
+                ATTRIBUTE &quot;datatype&quot; = &quot;struct{first,last,step}&quot;
+                DATASET &quot;first&quot; {
+                    ATTRIBUTE &quot;datatype&quot; = &quot;real&quot;
+                    DATA = 0
+                }
+                DATASET &quot;last&quot; {
+                    ATTRIBUTE &quot;datatype&quot; = &quot;real&quot;
+                    DATA = 3000
+                }
+                DATASET &quot;step&quot; {
+                    ATTRIBUTE &quot;datatype&quot; = &quot;real&quot;
+                    DATA = 1
+                }
+            }
+            DATASET &quot;closedleft&quot; {
+                ATTRIBUTE &quot;datatype&quot; = &quot;bool&quot;
+                DATA = 1
+            }
+        }
+    }
+    DATASET &quot;isdensity&quot; {
+        ATTRIBUTE &quot;datatype&quot; = &quot;bool&quot;
+        DATA = 0
+    }
+    DATASET &quot;weights&quot; {
+        ATTRIBUTE &quot;datatype&quot; = &quot;array&lt;1&gt;{real}&quot;
+        DATA = [...]
+    }
+}</code></pre><p>Multi-dimensional histograms will have groups &quot;axis_2&quot;, etc., with a multi-dimensional array as the value of dataset &quot;weights&quot;.</p><footer><hr/><a class="previous" href="../"><span class="direction">Previous</span><span class="title">Home</span></a><a class="next" href="../data_compression/"><span class="direction">Next</span><span class="title">Data Compression</span></a></footer></article></body></html>
